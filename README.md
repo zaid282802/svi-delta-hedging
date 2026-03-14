@@ -199,3 +199,4 @@ jupyter notebook notebooks/
 
 **Zaid Annigeri** -- Master of Quantitative Finance, Rutgers Business School
 [LinkedIn](https://linkedin.com/in/zed228) | [GitHub](https://github.com/zaid282802)
+
