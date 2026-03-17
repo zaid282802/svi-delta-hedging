@@ -141,4 +141,4 @@ python src/run_analysis.py
 
 ## Contact
 
-**Zaid Annigeri** — ma.zaid@rutgers.edu | [LinkedIn](https://linkedin.com/in/zaidannigeri) | [GitHub](https://github.com/zaid282802)
+**Zaid Annigeri** — ma.zaid@rutgers.edu | [LinkedIn](https://www.linkedin.com/in/zed228) | [GitHub](https://github.com/zaid282802)
