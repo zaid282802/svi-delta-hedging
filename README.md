@@ -3,7 +3,7 @@
 [![Python](https://img.shields.io/badge/Python-3.10+-blue.svg)](https://www.python.org/)
 [![Tests](https://img.shields.io/badge/Tests-80%20passing-green.svg)]()
 
-**Author:** [Zaid Annigeri](https://linkedin.com/in/zaidannigeri) | Master of Quantitative Finance, Rutgers Business School
+**October 2025 -- March 2026** | [Zaid Annigeri](https://www.linkedin.com/in/zed228) | Master of Quantitative Finance, Rutgers Business School
 
 > SVI is the industry standard for volatility surface calibration. The literature validates
 > fitting quality (10--50 bps RMSE) but stops there. **No study has tested whether a better
