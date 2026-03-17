@@ -48,7 +48,7 @@ No single volatility input wins everywhere. A moneyness-conditional strategy out
 ## Project Structure
 
 ```
-options-vol-surface/
+options-pricing-hedging/
 ├── thesis_project/
 │   ├── src/                           # Pipeline scripts (run in order)
 │   │   ├── run_hedging_backtest.py    # 1. Hedging backtest across vol inputs
@@ -58,42 +58,12 @@ options-vol-surface/
 │   │
 │   ├── report/                        # Academic deliverables
 │   │   ├── thesis.tex                 # 40-page thesis (LaTeX source)
-│   │   ├── thesis.pdf                 # Compiled thesis
-│   │   ├── defense_qa.tex             # Defense Q&A preparation
-│   │   └── defense_qa.pdf
+│   │   └── thesis.pdf                 # Compiled thesis
 │   │
-│   ├── results/
-│   │   ├── figures/                   # 8 thesis figures (PNG + PDF, 600 DPI)
-│   │   ├── tables/                    # 6 result CSVs
-│   │   ├── handout/                   # Conference handout (1-page landscape)
-│   │   │   ├── handout_v2.tex
-│   │   │   ├── gen_charts.py          # Generates the 4 handout charts
-│   │   │   ├── qr_github.png
-│   │   │   └── figures/               # 4 handout chart PNGs
-│   │   ├── poster/                    # Conference poster + designer assets
-│   │   │   ├── poster_content.tex
-│   │   │   ├── poster_content.pdf
-│   │   │   ├── 9 × fig_poster_*.png
-│   │   │   ├── share/                 # Designer handoff package v1
-│   │   │   └── ShareV1.2/             # Designer handoff package v1.2
-│   │   ├── slides/                    # Presentation slides + 4 figures
-│   │   ├── one_pager/                 # Extended abstract
-│   │   └── pitch/                     # Pitch scripts
-│   │
-│   ├── data/                          # NOT in repo (see Data section below)
-│   │   ├── raw/                       # WRDS CSVs + VIX history
-│   │   └── processed/                 # Parquet output files
-│   │
-│   ├── existing_code/                 # Original options-vol-surface project
-│   │   ├── src/                       # Pricing engine, Greeks, SVI, hedging (12 modules)
-│   │   ├── tests/                     # 80 unit tests
-│   │   ├── notebooks/                 # 4 Jupyter notebooks
-│   │   └── report/                    # Original project report
-│   │
-│   └── .project-notes/               # Internal project documentation
-│       ├── project-notes.md           # Key numbers, rules, glossary
-│       ├── context/                   # Methodology, results summary, specs
-│       └── scripts/                   # Figure generation scripts (matplotlib)
+│   └── results/
+│       ├── figures/                   # 8 thesis figures (PNG, 600 DPI)
+│       ├── tables/                    # 6 result CSVs
+│       └── one_pager/                 # Extended abstract (PDF + LaTeX)
 │
 └── requirements.txt
 ```
@@ -143,14 +113,12 @@ To reproduce:
 ## Installation
 
 ```bash
-git clone https://github.com/zaid282802/options-vol-surface.git
-cd options-vol-surface
+git clone https://github.com/zaid282802/options-pricing-hedging.git
+cd options-pricing-hedging
 pip install -r requirements.txt
 ```
 
 ## Usage
-
-### Run the thesis pipeline
 
 ```bash
 cd thesis_project
@@ -161,42 +129,6 @@ python src/run_svi_calibration.py
 python src/run_butterfly_check.py
 python src/run_analysis.py
 ```
-
-### Run the original project tests
-
-```bash
-cd thesis_project/existing_code
-pytest tests/ -v
-```
-
-### Regenerate figures
-
-```bash
-# Thesis figures (8 figures, PNG + PDF)
-python .project-notes/scripts/generate_figs_1_to_4.py
-python .project-notes/scripts/generate_figures_5_to_8.py
-
-# Poster figures (9 figures)
-python .project-notes/scripts/generate_poster_figures.py
-
-# Slide figures (4 figures)
-python .project-notes/scripts/generate_slide_figures.py
-
-# Handout charts (4 figures)
-cd results/handout && python gen_charts.py
-```
-
-## Core Library (existing_code/src/)
-
-The thesis builds on a from-scratch options pricing library:
-
-- **pricing.py** — Black-Scholes analytical, CRR binomial tree, Monte Carlo with antithetic + control variate variance reduction
-- **greeks.py** — 10 analytical Greeks + numerical finite differences (< 0.1% relative error)
-- **implied_vol.py** — Newton-Raphson IV solver with Brenner-Subrahmanyam seed, bisection fallback
-- **vol_surface.py** — SVI raw parameterization, DE + L-BFGS-B two-stage calibration, butterfly & calendar arb checks
-- **realized_vol.py** — Close-to-close, Parkinson, Yang-Zhang estimators
-- **delta_hedge.py** — Monte Carlo delta-hedge simulation with gamma-theta decomposition
-- **enhanced_hedging.py** — Delta-gamma hedging, P&L variance attribution
 
 ## References
 
