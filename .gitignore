@@ -1,26 +1,31 @@
+# Data (too large + licensed)
+thesis_project/data/
+
+# Original code (kept locally, not in repo)
+thesis_project/existing_code/
+
+# Internal project notes
+thesis_project/.project-notes/
+
+# Pitch scripts
+thesis_project/results/pitch/
+
+# PDF versions of thesis figures (PNGs are included)
+thesis_project/results/figures/*.pdf
+
+# LaTeX build artifacts
+*.aux
+*.log
+*.lof
+*.lot
+*.out
+*.toc
+*.fls
+*.fdb_latexmk
+*.synctex.gz
+*.synctex(busy)
+
+# Python
 __pycache__/
 *.pyc
-.ipynb_checkpoints/
-.pytest_cache/
-.DS_Store
-*.egg-info/
-dist/
-build/
-.env
-data/raw/*.parquet
-data/raw/*.csv
-!data/raw/.gitkeep
-report/*.aux
-report/*.bbl
-report/*.blg
-report/*.log
-report/*.out
-report/*.toc
-report/*.fls
-report/*.fdb_latexmk
-report/*.synctex.gz
-report/*.pdf
-CLAUDE.md
-claude_code_prompt_v2.xml
-project_defense.md
-study_plan.md
+*.pyo

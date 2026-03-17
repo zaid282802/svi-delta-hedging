@@ -1,0 +1,79 @@
+\documentclass[10pt, twocolumn, letterpaper]{article}
+\usepackage[margin=0.5in]{geometry}
+\usepackage{amsmath, booktabs, xcolor, hyperref, enumitem}
+\pagestyle{empty}
+
+\begin{document}
+
+\twocolumn[
+\begin{center}
+{\large\bfseries Regime-Dependent Delta Hedging with SVI-Calibrated Volatility Surfaces}\par\vspace{0.5em}
+Zaid Annigeri\\
+{\small Master of Quantitative Finance, Rutgers Business School $\cdot$ ma.zaid@rutgers.edu}
+\end{center}
+\vspace{0.8em}
+
+\noindent\textbf{Abstract.} This study evaluates five volatility inputs for delta-hedging S\&P 500 index options: flat at-the-money implied volatility, SVI-calibrated surface implied volatility, and three realized volatility estimators (close-to-close, Parkinson, and Yang-Zhang). Using OptionMetrics data on 2,000 stratified SPX options from January 2019 through December 2024, we conduct daily-rebalanced hedging backtests across four VIX-defined market regimes. Close-to-close realized volatility achieves the best aggregate performance, reducing hedging error standard deviation by 5.8\% versus the flat BSM benchmark ($F = 0.89$, $p = 0.008$). The SVI surface, despite achieving 19.5 basis points median calibration RMSE, increases hedging error by 9.4\% overall ($F = 1.20$, $p < 0.001$). However, the optimal input is moneyness-dependent: SVI dominates for out-of-the-money calls (6--12\% RMSE reduction), while realized volatility dominates for out-of-the-money puts (21--48\% reduction). No single input wins everywhere, motivating a moneyness-conditional hedging strategy.
+
+\smallskip\noindent\textbf{Keywords:} delta hedging, implied volatility surface, SVI parameterization, realized volatility, VIX regimes
+
+\vspace{0.3em}\hrule\vspace{0.5em}
+]
+
+\small
+
+\textbf{1. Introduction}
+
+Options desks must select a volatility input for computing hedge ratios daily, yet the choice is largely heuristic. The Stochastic Volatility Inspired (SVI) parameterization~[4] is the industry standard for fitting implied volatility surfaces, with typical calibration RMSE of 10--50 basis points for liquid equity index options. Despite extensive validation of SVI calibration quality, no study has tested whether SVI-calibrated volatilities produce better delta-hedging outcomes than simpler alternatives such as flat at-the-money implied volatility or realized volatility estimators. This paper provides the first large-scale empirical comparison of five volatility inputs for delta hedging S\&P 500 index options across four VIX-defined market regimes.
+
+\textbf{2. Data \& Methodology}
+
+We use OptionMetrics IvyDB data on SPX European options from January 2019 through December 2024, filtering 28.6 million raw observations to 5.6 million and selecting a stratified sample of 2,000 options (500 per VIX regime: Low $<$15, Normal 15--25, High 25--35, Crisis $\geq$35). Each option is delta-hedged daily to expiry using five volatility inputs: flat BSM IV, SVI surface IV, and three realized volatility estimators (close-to-close, Parkinson, and Yang-Zhang, all 21-day rolling windows). The SVI calibration employs Gatheral's raw parameterization with a three-stage optimizer (least squares warm-start, differential evolution, L-BFGS-B polish), achieving 19.5 bps median RMSE and 68.6\% Durrleman butterfly arbitrage-free rate across 3,069 calibrated slices. We decompose hedging P\&L using the El Karoui et al.~[2] framework into discrete rebalancing error, volatility misspecification, and higher-order residual components, with variance contributions computed via covariance decomposition.
+
+\textbf{3. Results}
+
+\begin{table}[h]
+\centering\footnotesize
+\caption{Hedging error comparison across 2,000 SPX options.}
+\begin{tabular}{@{}lrrr@{}}
+\toprule
+Volatility Input & Std (\$) & Gain (\%) & $p$-value \\
+\midrule
+Flat BSM IV & 42.10 & --- & (baseline) \\
+SVI Surface IV & 46.04 & $-$9.4 & $<$0.001 \\
+\textbf{RV Close-Close} & \textbf{39.66} & \textbf{+5.8} & \textbf{0.008} \\
+RV Parkinson & 60.30 & $-$43.2 & $<$0.001 \\
+RV Yang-Zhang & 49.86 & $-$18.4 & $<$0.001 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Close-to-close realized volatility is the best aggregate hedging input, with a Hull \& White~[5] Gain of $+5.8\%$ (standard deviation reduction from \$42.10 to \$39.66; $F = 0.89$, $p = 0.008$). The SVI surface increases hedging error variance by 9.4\% ($F = 1.20$, $p < 0.001$), as calibration noise outweighs the informational benefit of strike-specific volatilities. The Parkinson and Yang-Zhang estimators perform worst (Gains of $-43.2\%$ and $-18.4\%$), indicating that statistical efficiency in volatility estimation does not translate to hedging efficiency.
+
+The optimal input is strongly moneyness-dependent: SVI dominates for OTM calls (6--12\% RMSE reduction vs.\ flat BSM), where the smile slope carries genuine hedgeable information, while close-to-close RV dominates for OTM puts (21--48\% reduction). An El Karoui-style variance attribution reveals that higher-order residual terms (vanna, volga, jumps) account for 150--210\% of hedging error variance across all regimes, dominating both discrete rebalancing error and volatility misspecification. Discrete rebalancing error is negatively correlated with total P\&L.
+
+\textbf{4. Conclusions}
+
+A moneyness-conditional strategy---SVI for the OTM call book, close-to-close RV for OTM puts, flat BSM for ATM---would outperform any single-input approach. The dominance of higher-order residuals implies that gamma management is more impactful than volatility input selection. Our findings complement Hull \& White~[5], achieving comparable Gains ($+5.8\%$) through a simpler realized volatility approach rather than minimum-variance delta adjustments.
+
+\vspace{0.5em}
+\hrule
+\vspace{0.3em}
+
+{\footnotesize
+\noindent\textbf{References}
+
+\noindent [1] Black, F. and Scholes, M. (1973). The pricing of options and corporate liabilities. \textit{J.~Political Economy}, 81(3):637--654.
+
+\noindent [2] El Karoui, N., Jeanblanc-Picqu\'{e}, M., and Shreve, S.E. (1998). Robustness of the Black and Scholes formula. \textit{Math.~Finance}, 8(2):93--126.
+
+\noindent [3] Gatheral, J. (2004). A parsimonious arbitrage-free implied volatility parameterization. Presentation at Global Derivatives, Madrid.
+
+\noindent [4] Gatheral, J. and Jacquier, A. (2014). Arbitrage-free SVI volatility surfaces. \textit{Quant.~Finance}, 14(1):59--71.
+
+\noindent [5] Hull, J.C. and White, A. (2017). Optimal delta hedging for options. \textit{J.~Banking \& Finance}, 82:180--190.
+
+\noindent [6] Yang, D. and Zhang, Q. (2000). Drift-independent volatility estimation. \textit{J.~Business}, 73(3):477--492.
+}
+
+\end{document}

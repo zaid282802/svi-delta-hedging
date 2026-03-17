@@ -1,155 +1,144 @@
-# Options Pricing, Greeks & Volatility Surface
+# Regime-Dependent Delta Hedging with SVI-Calibrated Volatility Surfaces on SPX Index Options
 
-[![Python](https://img.shields.io/badge/Python-3.9+-blue.svg)](https://www.python.org/)
+[![Python](https://img.shields.io/badge/Python-3.10+-blue.svg)](https://www.python.org/)
 [![Tests](https://img.shields.io/badge/Tests-80%20passing-green.svg)]()
-[![License](https://img.shields.io/badge/License-MIT-yellow.svg)]()
 
-**Author:** [Zaid Annigeri](https://linkedin.com/in/zed228) | Master of Quantitative Finance, Rutgers Business School
+**Author:** [Zaid Annigeri](https://linkedin.com/in/zaidannigeri) | Master of Quantitative Finance, Rutgers Business School
 
-> European options pricing engine with SVI implied volatility surface calibration,
-> delta-gamma hedging simulation, and P&L attribution analysis on SPY options,
-> demonstrating the gamma-theta tradeoff that drives options market making.
+> SVI is the industry standard for volatility surface calibration. The literature validates
+> fitting quality (10--50 bps RMSE) but stops there. **No study has tested whether a better
+> surface fit produces a better hedge.** This thesis closes that loop on 2,000 real SPX options
+> across four VIX regimes.
+
+**Presented at:** Future Alpha 2026 | Brooklyn Marriott | March 31 -- April 1, 2026
 
 ## Key Results
 
-### Pricing Engine Accuracy
+| Metric | Value |
+|---|---|
+| Sample | 28.6M SPX options → 5.6M filtered → 2,000 stratified (500/regime) |
+| Period | January 2019 -- December 2024 |
+| SVI RMSE | 19.5 bps median |
+| Arb-free rate | 68.6% |
+| Best overall | Close-to-Close RV (+5.8%, p = 0.008) |
+| Worst overall | Parkinson RV (−43.2%) |
+| Delta-Gamma hedge | 46% std reduction |
 
-Benchmark parameters: S = K = 100, T = 0.25y, r = 5%, q = 0%, sigma = 20%.
+### Three Hypotheses
 
-| Method | Call Price | Put Price | Error vs BS | Compute Time |
-|---|---:|---:|---:|---:|
-| Black-Scholes (analytical) | $4.6150 | $3.3728 | -- | <1 ms |
-| Binomial CRR (N=1,000) | $4.6140 | $3.3718 | -$0.0010 | ~19 ms |
-| Monte Carlo (500K paths) | $4.6157 | $3.3735 | +$0.0007 | ~67 ms |
+- **H1:** SVI reduces hedging error vs. flat BSM → **REJECTED** (−9.4%, p < 0.001)
+- **H2:** Yang-Zhang beats Close-to-Close RV → **REJECTED**
+- **H3:** Optimal vol input is regime-dependent → **PARTIAL SUPPORT**
 
-Monte Carlo uses antithetic variates and control variate (forward price) variance reduction,
-achieving standard error < $0.005 on 500,000 paths.
+### The Counterintuitive Finding
 
-### Greeks Validation
+The industry-standard volatility surface makes hedging *worse*. Calibration noise from the 5-parameter SVI optimization, interpolation staleness (calibrating every 5th day), and low signal-to-noise for most strikes overwhelm the smile information. Only OTM calls have steep enough slope to benefit from SVI.
 
-All Greeks validated to < 0.1% relative error via bump-and-revalue central finite differences.
+### Practitioner Takeaway
 
-| Greek | Analytical | Numerical | Rel. Error (%) | Description |
-|---|---:|---:|---:|---|
-| Delta | 0.5695 | 0.5695 | < 0.0001 | dV/dS |
-| Gamma | 0.0393 | 0.0393 | < 0.0001 | d2V/dS2 |
-| Vega | 0.1964 | 0.1964 | 0.0001 | dV/dsigma (per 1 vol-pt) |
-| Theta | -0.0287 | -0.0288 | 0.2108 | dV/dT (per calendar day) |
-| Rho | 0.1308 | 0.1308 | < 0.0001 | dV/dr (per 1 rate-pt) |
-| Vanna | -0.1473 | -0.1473 | 0.0040 | d2V/dS dsigma |
-| Volga | 1.2891 | 1.2892 | 0.0029 | d2V/dsigma2 |
+| Segment | Best Vol Input | Gain |
+|---|---|---|
+| OTM Calls | SVI Surface IV | +6--12% |
+| ATM | Flat BSM IV | baseline |
+| OTM Puts | CC Realized Vol | +21--48% |
+| VIX ≥ 35 | Focus on gamma management | — |
 
-### Implied Volatility Surface
-
-SVI (Stochastic Volatility Inspired) parameterization calibrated per expiration slice using
-differential evolution global search followed by L-BFGS-B local refinement. Typical fit quality:
-RMSE 18-24 bps, R-squared > 0.999. All butterfly and calendar arbitrage conditions satisfied.
-
-### Delta-Gamma Hedging
-
-50,000-path Monte Carlo comparing delta-only vs delta-gamma hedging (S0 = K1 = 100, K2 = 110, T = 1y, daily rebalancing):
-
-| Strategy | Mean P&L | Std P&L | Std Reduction | 95% Range |
-|---|---:|---:|---:|---|
-| Delta only | ~$0.00 | $0.44 | --- | [-0.92, +0.90] |
-| Delta-gamma | ~$0.00 | $0.24 | **46%** | [-0.35, +0.32] |
-
-### P&L Variance Attribution
-
-| Source | Correct Vol | Vol Misspecified (25% vs 20%) |
-|---|---:|---:|
-| Discrete Rebalancing | 97% | 22% |
-| Vol Misspecification | 0% | 68% |
-| Higher-Order Terms | 3% | 10% |
+No single volatility input wins everywhere. A moneyness-conditional strategy outperforms any single approach.
 
 ## Project Structure
 
 ```
 options-vol-surface/
-|-- src/                         # Core library (12 modules)
-|   |-- __init__.py              # Public API re-exports
-|   |-- config.py                # Constants: RANDOM_SEED, DEFAULT_N_MC_PATHS, etc.
-|   |-- pricing.py               # BlackScholes class, binomial tree, Monte Carlo engine
-|   |-- greeks.py                # Analytical + numerical Greeks (10 sensitivities)
-|   |-- implied_vol.py           # Newton-Raphson IV solver with bisection fallback
-|   |-- vol_surface.py           # SVI calibration, arbitrage checks, interpolation
-|   |-- realized_vol.py          # Close-to-close, Parkinson, Yang-Zhang estimators
-|   |-- delta_hedge.py           # MC delta-hedge simulation + single-path detail
-|   |-- enhanced_hedging.py      # Delta-gamma hedging, P&L attribution, vega hedging
-|   |-- historical_case_studies.py  # COVID crash, earnings IV crush, flash crash
-|   |-- model_risk_analysis.py   # Model risk report, Monte Carlo precision analysis
-|   |-- performance_benchmarks.py   # Timing + memory benchmarks for all pricing methods
-|   |-- data_utils.py            # SPY options fetch (yfinance), FRED rates, cleaning
-|-- tests/                       # 80 unit tests
-|   |-- test_pricing.py          # Put-call parity, binomial convergence, MC CI
-|   |-- test_greeks.py           # 42 parametrized: 7 Greeks x 6 variants (call/put x ITM/ATM/OTM)
-|   |-- test_implied_vol.py      # IV recovery, extremes, bad price handling
-|   |-- test_vol_surface.py      # SVI fit, butterfly arb, calendar arb, positive variance
-|   |-- test_enhancements.py     # Delta-gamma, P&L attribution, case studies, benchmarks
-|-- notebooks/                   # Interactive analysis (4 notebooks)
-|   |-- 01_pricing_demo.ipynb    # Pricing comparison, MC convergence (3 figures, 2 tables)
-|   |-- 02_greeks_analysis.ipynb # Greek surfaces, sensitivities (7 figures, 1 table)
-|   |-- 03_vol_surface.ipynb     # SVI calibration, smile dynamics (7 figures, 2 tables)
-|   |-- 04_delta_hedging.ipynb   # Hedging P&L, gamma-theta decomp (6 figures, 3 tables)
-|-- report/                      # LaTeX academic report
-|   |-- main.tex                 # 6 sections + 3 appendices, 42 equations, 20 figures
-|   |-- references.bib           # 18 BibTeX entries
-|   |-- figures/                 # Figures for LaTeX compilation
-|-- data/raw/                    # Cached SPY options data (Parquet)
-|-- results/figures/             # Generated plots from notebooks
-|-- results/tables/              # Generated CSV/LaTeX tables
-|-- requirements.txt
+├── thesis_project/
+│   ├── src/                           # Pipeline scripts (run in order)
+│   │   ├── run_hedging_backtest.py    # 1. Hedging backtest across vol inputs
+│   │   ├── run_svi_calibration.py     # 2. SVI surface calibration
+│   │   ├── run_butterfly_check.py     # 3. Butterfly arbitrage validation
+│   │   └── run_analysis.py            # 4. Statistical analysis & tables
+│   │
+│   ├── report/                        # Academic deliverables
+│   │   ├── thesis.tex                 # 40-page thesis (LaTeX source)
+│   │   ├── thesis.pdf                 # Compiled thesis
+│   │   ├── defense_qa.tex             # Defense Q&A preparation
+│   │   └── defense_qa.pdf
+│   │
+│   ├── results/
+│   │   ├── figures/                   # 8 thesis figures (PNG + PDF, 600 DPI)
+│   │   ├── tables/                    # 6 result CSVs
+│   │   ├── handout/                   # Conference handout (1-page landscape)
+│   │   │   ├── handout_v2.tex
+│   │   │   ├── gen_charts.py          # Generates the 4 handout charts
+│   │   │   ├── qr_github.png
+│   │   │   └── figures/               # 4 handout chart PNGs
+│   │   ├── poster/                    # Conference poster + designer assets
+│   │   │   ├── poster_content.tex
+│   │   │   ├── poster_content.pdf
+│   │   │   ├── 9 × fig_poster_*.png
+│   │   │   ├── share/                 # Designer handoff package v1
+│   │   │   └── ShareV1.2/             # Designer handoff package v1.2
+│   │   ├── slides/                    # Presentation slides + 4 figures
+│   │   ├── one_pager/                 # Extended abstract
+│   │   └── pitch/                     # Pitch scripts
+│   │
+│   ├── data/                          # NOT in repo (see Data section below)
+│   │   ├── raw/                       # WRDS CSVs + VIX history
+│   │   └── processed/                 # Parquet output files
+│   │
+│   ├── existing_code/                 # Original options-vol-surface project
+│   │   ├── src/                       # Pricing engine, Greeks, SVI, hedging (12 modules)
+│   │   ├── tests/                     # 80 unit tests
+│   │   ├── notebooks/                 # 4 Jupyter notebooks
+│   │   └── report/                    # Original project report
+│   │
+│   └── .project-notes/               # Internal project documentation
+│       ├── project-notes.md           # Key numbers, rules, glossary
+│       ├── context/                   # Methodology, results summary, specs
+│       └── scripts/                   # Figure generation scripts (matplotlib)
+│
+└── requirements.txt
 ```
-
-## Source Code Guide
-
-### Core Pricing (`src/pricing.py`)
-`BlackScholes` class with 6 parameters (S, K, T, r, q, sigma). Three pricing engines: analytical Black-Scholes-Merton, Cox-Ross-Rubinstein binomial tree (European and American), and Monte Carlo with antithetic variates and control variate variance reduction. All methods are vectorized with NumPy.
-
-### Greeks (`src/greeks.py`)
-`NumericalGreeks` class with 7 static methods computing finite-difference Greeks via central differencing. `compare_greeks()` validates numerical vs analytical values. `greek_surface_data()` generates delta/gamma/vega surfaces across spot and expiry grids. Supports all 10 Greeks: delta, gamma, vega, theta, rho, vanna, volga, charm, speed, color.
-
-### Implied Volatility (`src/implied_vol.py`)
-Newton-Raphson solver with Brenner-Subrahmanyam (1988) initial seed for fast convergence. Automatic bisection fallback when vega is near zero (deep ITM/OTM). Returns `NaN` for arbitrage-violating prices.
-
-### Volatility Surface (`src/vol_surface.py`)
-Gatheral's SVI raw parameterization with two-stage calibration: differential evolution global search + L-BFGS-B local refinement. Includes butterfly arbitrage check (risk-neutral density non-negativity) and calendar spread arbitrage check (total variance monotonicity). Multi-seed retry for robustness.
-
-### Realized Volatility (`src/realized_vol.py`)
-Three estimators: close-to-close (standard), Parkinson high-low range (5x more efficient), and Yang-Zhang OHLC (combines overnight jumps with intraday range). All expect pandas Series input with configurable rolling windows.
-
-### Delta Hedging (`src/delta_hedge.py`)
-`run_delta_hedge()` runs 10,000+ path Monte Carlo with discrete daily rebalancing and configurable transaction costs. `single_path_detail()` provides step-by-step gamma-theta P&L decomposition for a single path. Premium-in-cash self-financing convention.
-
-### Enhanced Hedging (`src/enhanced_hedging.py`)
-Vectorized `black_scholes_greeks()` accepting array inputs. `delta_gamma_hedge_simulation()` compares delta-only vs delta-gamma hedging by adding a second option to neutralize gamma. `pnl_attribution_analysis()` decomposes hedge P&L variance into discrete rebalancing error, volatility misspecification, and higher-order terms. `vega_hedge_simulation()` models impact of vol shocks.
-
-### Historical Case Studies (`src/historical_case_studies.py`)
-Three case studies grounding theoretical results in market reality: COVID-19 crash (March 2020, SPX -34%, VIX 82.7), earnings IV crush (NVDA-style, 65% to 38% overnight), and the Flash Crash (May 2010, 9% drop in 5 minutes). Each includes spot/IV data, P&L breakdown, and key lessons.
-
-### Model Risk Analysis (`src/model_risk_analysis.py`)
-`generate_model_risk_report()` catalogs 7 model risk items with typical and stress impact in basis points. `analyze_monte_carlo_risk()` computes confidence intervals and relative standard errors for MC pricing.
-
-### Performance Benchmarks (`src/performance_benchmarks.py`)
-Timing and memory profiling for BSM (<1ms), binomial tree (19ms at N=1000), and Monte Carlo (67ms at 500K paths). Results exported as a DataFrame for the report appendix.
-
-### Configuration (`src/config.py`)
-Central constants: `RANDOM_SEED=42`, `DEFAULT_N_MC_PATHS=500_000`, default market parameters, and file paths. All notebooks and simulations reference this for reproducibility.
-
-### Data Utilities (`src/data_utils.py`)
-Fetches SPY options chains via yfinance with a 7-step cleaning pipeline: removes zero bids, filters extreme moneyness, eliminates low liquidity, checks bid-ask spreads, and caches to Parquet. Optional FRED API integration for live Treasury rates.
 
 ## Methodology
 
-- **Pricing**: Black-Scholes analytical, CRR binomial (N=1,000), Monte Carlo (500K paths) with antithetic + control variate variance reduction
-- **Greeks**: 10 analytical Greeks + numerical finite differences (central differencing, relative error < 0.1%)
-- **IV Solver**: Newton-Raphson with Brenner-Subrahmanyam seed, bisection fallback
-- **Vol Surface**: SVI raw parameterization, DE + L-BFGS-B two-stage calibration
-- **Arbitrage**: Butterfly (density non-negativity) and calendar spread (total variance monotonicity)
-- **Realized Vol**: Close-to-close, Parkinson, Yang-Zhang with rolling windows
-- **Hedging**: 50,000-path MC, daily rebalancing, configurable transaction costs, gamma-theta decomposition
-- **Delta-Gamma**: Second option neutralizes gamma via n2 = Gamma1/Gamma2, 46% std reduction
-- **P&L Attribution**: 3-component variance decomposition (discrete rebalancing, vol misspec, higher-order)
+### Data Pipeline
+
+1. **Source:** 28.6M SPX options from WRDS OptionMetrics (Jan 2019 -- Dec 2024)
+2. **Filtering:** Volume ≥ 10, 7 ≤ DTE ≤ 180, moneyness 0.8--1.2, midpoint > $0.50 → 5.6M
+3. **Stratification:** 2,000 options sampled (500 per VIX regime: Low < 15, Normal 15--25, High 25--35, Crisis ≥ 35)
+
+### Volatility Inputs Tested
+
+| Input | Description |
+|---|---|
+| Flat BSM IV | OptionMetrics implied volatility (benchmark) |
+| SVI Surface IV | Gatheral's 5-parameter SVI, calibrated per expiration slice |
+| CC Realized Vol | 21-day close-to-close, annualized √252 |
+| Parkinson RV | High-low range estimator (5× statistical efficiency under GBM) |
+| Yang-Zhang RV | OHLC estimator combining overnight jumps with intraday range |
+
+### Hedging Protocol
+
+- BSM delta computed from each vol input
+- Daily rebalancing to expiry
+- Performance measured by Hull & White (2017) Gain statistic: `Gain = 1 − (std_method / std_benchmark)`
+- Statistical significance via Levene's test for variance equality
+
+### P&L Attribution
+
+El Karoui, Jeanblanc-Picqué & Shreve (1998) decomposition:
+- **Discrete rebalancing error** (−38% to −59% of variance)
+- **Volatility misspecification** (−20% to +6%)
+- **Higher-order residual** (153% to 162% — dominates across all regimes)
+
+## Data
+
+Raw data is **not included** in this repository due to size (3.5 GB) and WRDS licensing restrictions.
+
+To reproduce:
+1. Obtain access to [WRDS OptionMetrics](https://wrds-www.wharton.upenn.edu/)
+2. Download SPX options data for 2019--2024
+3. Place CSVs in `thesis_project/data/raw/`
+4. Run the pipeline (see below)
 
 ## Installation
 
@@ -159,44 +148,65 @@ cd options-vol-surface
 pip install -r requirements.txt
 ```
 
-**Optional**: Set `FRED_API_KEY` as an environment variable to fetch live Treasury rates from
-FRED. Without it, the system falls back to the configured rate (4.3%).
-
 ## Usage
 
-```bash
-# Run all 80 tests
-pytest tests/ -v
+### Run the thesis pipeline
 
-# Launch analysis notebooks
-jupyter notebook notebooks/
+```bash
+cd thesis_project
+
+# Run in order — each step depends on the previous
+python src/run_hedging_backtest.py
+python src/run_svi_calibration.py
+python src/run_butterfly_check.py
+python src/run_analysis.py
 ```
 
-## Test Coverage
+### Run the original project tests
 
-| Test File | Tests | What It Covers |
-|---|---:|---|
-| test_pricing.py | 15 | Put-call parity, binomial convergence, MC CI, deep moneyness |
-| test_greeks.py | 42 | 7 Greeks x 6 variants (call/put x ITM/ATM/OTM), REL_TOL=0.001 |
-| test_implied_vol.py | 6 | IV recovery, extreme vols, bad price returns NaN |
-| test_vol_surface.py | 5 | SVI flat vol, fit quality, butterfly arb, calendar arb |
-| test_enhancements.py | 12 | Delta-gamma hedge, P&L attribution, case studies, benchmarks |
-| **Total** | **80** | |
+```bash
+cd thesis_project/existing_code
+pytest tests/ -v
+```
 
+### Regenerate figures
+
+```bash
+# Thesis figures (8 figures, PNG + PDF)
+python .project-notes/scripts/generate_figs_1_to_4.py
+python .project-notes/scripts/generate_figures_5_to_8.py
+
+# Poster figures (9 figures)
+python .project-notes/scripts/generate_poster_figures.py
+
+# Slide figures (4 figures)
+python .project-notes/scripts/generate_slide_figures.py
+
+# Handout charts (4 figures)
+cd results/handout && python gen_charts.py
+```
+
+## Core Library (existing_code/src/)
+
+The thesis builds on a from-scratch options pricing library:
+
+- **pricing.py** — Black-Scholes analytical, CRR binomial tree, Monte Carlo with antithetic + control variate variance reduction
+- **greeks.py** — 10 analytical Greeks + numerical finite differences (< 0.1% relative error)
+- **implied_vol.py** — Newton-Raphson IV solver with Brenner-Subrahmanyam seed, bisection fallback
+- **vol_surface.py** — SVI raw parameterization, DE + L-BFGS-B two-stage calibration, butterfly & calendar arb checks
+- **realized_vol.py** — Close-to-close, Parkinson, Yang-Zhang estimators
+- **delta_hedge.py** — Monte Carlo delta-hedge simulation with gamma-theta decomposition
+- **enhanced_hedging.py** — Delta-gamma hedging, P&L variance attribution
 
 ## References
 
-- Black, F. & Scholes, M. (1973). The Pricing of Options and Corporate Liabilities. *Journal of Political Economy*, 81(3), 637-654.
-- Cox, J., Ross, S. & Rubinstein, M. (1979). Option Pricing: A Simplified Approach. *Journal of Financial Economics*, 7(3), 229-263.
-- Brenner, M. & Subrahmanyam, M. (1988). A Simple Formula to Compute the Implied Standard Deviation. *The Journal of Finance*, 43(4).
 - Gatheral, J. & Jacquier, A. (2014). Arbitrage-free SVI Volatility Surfaces. *Quantitative Finance*, 14(1), 59-71.
+- Hull, J. & White, A. (2017). Optimal Delta Hedging for Options. *Journal of Banking & Finance*, 82, 180-190.
+- El Karoui, N., Jeanblanc-Picqué, M. & Shreve, S. (1998). Robustness of the Black and Scholes Formula. *Mathematical Finance*, 8(2), 93-126.
+- Ruf, J. & Wang, W. (2022). Hedging with Linear Regressions and Neural Networks. *Journal of Business & Economic Statistics*, 40(4).
+- Parkinson, M. (1980). The Extreme Value Method for Estimating the Variance of the Rate of Return. *Journal of Business*, 53(1), 61-65.
 - Gatheral, J. (2006). *The Volatility Surface: A Practitioner's Guide*. Wiley.
-- El Karoui, N., Jeanblanc-Picque, M. & Shreve, S. (1998). Robustness of the Black and Scholes Formula. *Mathematical Finance*, 8(2), 93-126.
-- Hull, J. (2021). *Options, Futures, and Other Derivatives*. 11th Ed. Pearson.
-- Sinclair, E. (2010). *Option Trading: Pricing and Volatility Strategies and Techniques*. Wiley.
 
-## Author
+## Contact
 
-**Zaid Annigeri** -- Master of Quantitative Finance, Rutgers Business School
-[LinkedIn](https://linkedin.com/in/zed228) | [GitHub](https://github.com/zaid282802)
-
+**Zaid Annigeri** — ma.zaid@rutgers.edu | [LinkedIn](https://linkedin.com/in/zaidannigeri) | [GitHub](https://github.com/zaid282802)

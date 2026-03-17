@@ -1,0 +1,17 @@
+category,group,n_options
+VIX Regime,Low,500
+VIX Regime,Normal,500
+VIX Regime,High,500
+VIX Regime,Crisis,500
+Moneyness,atm,486
+Moneyness,deep_otm_call,115
+Moneyness,deep_otm_put,221
+Moneyness,otm_call,764
+Moneyness,otm_put,414
+Maturity,short,1078
+Maturity,medium,790
+Maturity,long,132
+Type,Call,988
+Type,Put,1012
+Total,All,2000
+Date Range,2019-01-17 to 2024-12-03,2000
