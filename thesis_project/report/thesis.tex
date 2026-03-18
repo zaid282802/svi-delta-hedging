@@ -115,7 +115,7 @@ Rutgers, The State University of New Jersey\par}
 \noindent
 This thesis investigates which volatility input minimizes delta-hedging error for S\&P~500 index options across different market regimes. I compare five volatility inputs for computing Black--Scholes hedge deltas: (1)~flat at-the-money implied volatility, (2)~strike-specific implied volatility from a calibrated Gatheral SVI surface, (3)~21-day close-to-close realized volatility, (4)~21-day Parkinson realized volatility, and (5)~21-day Yang--Zhang realized volatility. Using OptionMetrics data on 2,000 stratified SPX options from January 2019 through December 2024, I conduct daily-rebalanced delta-hedging backtests across four VIX-defined regimes (Low, Normal, High, and Crisis).
 
-The results challenge prevailing intuition. Aggregate hedging performance ranks close-to-close realized volatility first, with a statistically significant 5.8\% reduction in hedging error standard deviation versus the flat BSM benchmark ($F = 0.89$, $p = 0.008$). The SVI surface, despite achieving a median calibration RMSE of 19.5 basis points and 68.6\% butterfly arbitrage-free rate, \textit{increases} hedging error variance by 9.4\% overall. However, the optimal volatility input is regime- and moneyness-dependent: SVI dominates for out-of-the-money calls (RMSE reductions of 6--30\% versus flat BSM), while realized volatility estimators outperform for out-of-the-money puts. An El~Karoui--style P\&L decomposition reveals that discrete rebalancing error dominates variance attribution in calm markets (38--58\%), while vol misspecification and higher-order residuals drive crisis-period losses.
+The results challenge prevailing intuition. Aggregate hedging performance ranks close-to-close realized volatility first, with a statistically significant 5.8\% reduction in hedging error standard deviation versus the flat BSM benchmark ($F = 0.89$, $p = 0.008$). The SVI surface, despite achieving a median calibration RMSE of 19.5 basis points and 68.6\% butterfly arbitrage-free rate, \textit{increases} hedging error variance by 9.4\% overall. However, the optimal volatility input is regime- and moneyness-dependent: SVI dominates for out-of-the-money calls (RMSE reductions of 6--12\% versus flat BSM), while realized volatility estimators outperform for out-of-the-money puts. An El~Karoui--style P\&L decomposition reveals that higher-order residuals (vanna, volga, jumps) dominate variance attribution across all regimes (153--162\%), while discrete rebalancing error and volatility misspecification contribute negatively through the gamma--theta offset.
 
 These findings suggest that the calibration noise introduced by SVI fitting outweighs its informational benefit for most option types, but that a regime-conditional approach selecting different volatility inputs by moneyness and VIX level could improve hedging outcomes relative to any single-input strategy.
 
@@ -171,7 +171,7 @@ The optimal volatility input is regime-dependent: SVI surface IV dominates in ca
 
 The experiment uses OptionMetrics IvyDB data on SPX options from January 2019 through December 2024---a period that includes the COVID-19 crash, the 2022 rate-hiking cycle, and extended low-volatility regimes. I sample 2,000 options stratified across four VIX-defined market regimes, hedge each daily to expiry using each of the five volatility inputs, and analyze the resulting P\&L distributions. I complement the hedging analysis with an El~Karoui decomposition of hedging P\&L into discrete rebalancing error, volatility misspecification, and higher-order residual components, and I validate the SVI calibration using the Durrleman butterfly arbitrage condition.
 
-The results are nuanced and, in several respects, surprising. They challenge the assumption that more information (a full volatility surface) necessarily translates into better hedging. The remainder of this thesis is organized as follows. Chapter~\ref{sec:literature} reviews the relevant literature. Chapter~\ref{sec:methodology} presents the methodology. Chapter~\ref{sec:data} describes the data. Chapter~\ref{sec:results} reports the empirical results. Chapter~\ref{sec:discussion} discusses implications for practitioners. Chapter~\ref{sec:conclusion} concludes.
+The results are nuanced and, in several respects, surprising. They challenge the assumption that more information (a full volatility surface) necessarily translates into better hedging. The remainder of this thesis is organized as follows. Section~\ref{sec:literature} reviews the relevant literature. Section~\ref{sec:methodology} presents the methodology. Section~\ref{sec:data} describes the data. Section~\ref{sec:results} reports the empirical results. Section~\ref{sec:discussion} discusses implications for practitioners. Section~\ref{sec:conclusion} concludes.
 
 
 % =============================================================================
@@ -264,7 +264,7 @@ The literature reveals a clear gap at the intersection of these four streams. SV
 \section{Methodology}
 \label{sec:methodology}
 
-This chapter describes the computational infrastructure and statistical methods used in the empirical analysis. The framework was implemented in Python, with all code written as standalone functions for transparency and reproducibility.
+This section describes the computational infrastructure and statistical methods used in the empirical analysis. The framework was implemented in Python, with all code written as standalone functions for transparency and reproducibility.
 
 \subsection{Pricing Framework}
 \label{sec:pricing}
@@ -325,7 +325,7 @@ Parameter bounds are $a \in [-0.5, 0.5]$, $b \in [0.001, 2.0]$, $\rho \in [-0.99
 
 \subsubsection{Calibration Thinning and Interpolation}
 
-To make the calibration tractable over a six-year sample, I calibrate every 5th trading day per expiry date (plus the first and last dates), yielding approximately 3,100 calibration points from the full set of over 12,500 unique (date, expiry) slices. SVI parameters for non-calibrated dates are obtained by linear interpolation of each parameter along the date axis, holding the expiry fixed. This approach assumes smooth evolution of the smile shape between calibration dates.
+To make the calibration tractable over a six-year sample, I calibrate every 5th trading day per expiry date (plus the first and last dates), yielding approximately 3,130 calibration points from the full set of over 12,500 unique (date, expiry) slices. SVI parameters for non-calibrated dates are obtained by linear interpolation of each parameter along the date axis, holding the expiry fixed. This approach assumes smooth evolution of the smile shape between calibration dates.
 
 \subsubsection{SVI IV Application Guards}
 
@@ -865,7 +865,7 @@ Figure~\ref{fig:pnl_attrib} visualizes the attribution across all five volatilit
 \subsection{SVI Calibration Quality as a Hedging Predictor}
 \label{sec:svi_predictor}
 
-If SVI calibration quality drives hedging performance, we should observe a positive relationship between calibration RMSE and absolute hedging error. Figure~\ref{fig:svi_hedge} tests this hypothesis via a scatter plot with OLS regression.
+If SVI calibration quality drives hedging performance, one should observe a positive relationship between calibration RMSE and absolute hedging error. Figure~\ref{fig:svi_hedge} tests this hypothesis via a scatter plot with OLS regression.
 
 \begin{figure}[H]
 \centering
