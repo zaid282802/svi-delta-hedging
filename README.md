@@ -6,9 +6,9 @@
 **October 2025 -- March 2026** | [Zaid Annigeri](https://www.linkedin.com/in/zed228) | Master of Quantitative Finance, Rutgers Business School
 
 > SVI is the industry standard for volatility surface calibration. The literature validates
-> fitting quality (10--50 bps RMSE) but stops there. **No study has tested whether a better
-> surface fit produces a better hedge.** This thesis closes that loop on 2,000 real SPX options
-> across four VIX regimes.
+> fitting quality (10--50 bps RMSE) but stops there. **How much does the vol input choice
+> actually matter for hedging — and is the answer regime-dependent?** This thesis answers
+> that question on 2,000 real SPX options across four VIX regimes.
 
 **Presented at:** Future Alpha 2026 | Brooklyn Marriott | March 31 -- April 1, 2026
 
@@ -30,9 +30,9 @@
 - **H2:** Yang-Zhang beats Close-to-Close RV → **REJECTED**
 - **H3:** Optimal vol input is regime-dependent → **PARTIAL SUPPORT**
 
-### The Counterintuitive Finding
+### Why Does SVI Hurt Hedging?
 
-The industry-standard volatility surface makes hedging *worse*. Calibration noise from the 5-parameter SVI optimization, interpolation staleness (calibrating every 5th day), and low signal-to-noise for most strikes overwhelm the smile information. Only OTM calls have steep enough slope to benefit from SVI.
+More information does not mean better hedging. Calibration noise from the 5-parameter SVI optimization, interpolation staleness (calibrating every 5th day), and low signal-to-noise for most strikes overwhelm the smile information. Only OTM calls have steep enough slope to benefit from SVI.
 
 ### Practitioner Takeaway
 
@@ -43,7 +43,7 @@ The industry-standard volatility surface makes hedging *worse*. Calibration nois
 | OTM Puts | CC Realized Vol | +21--48% |
 | VIX ≥ 35 | Focus on gamma management | — |
 
-No single volatility input wins everywhere. A moneyness-conditional strategy outperforms any single approach.
+No single volatility input wins everywhere. Vol input choice explains only 4--20% of hedging error variance; the remaining 80--96% requires gamma hedging, vanna/volga adjustments, or jump-aware models. A moneyness-conditional strategy provides a variance-reducing baseline within the BSM framework.
 
 ## Project Structure
 
