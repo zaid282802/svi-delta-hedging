@@ -7,13 +7,13 @@
 
 \twocolumn[
 \begin{center}
-{\large\bfseries Regime-Dependent Delta Hedging with SVI-Calibrated Volatility Surfaces}\par\vspace{0.5em}
+{\large\bfseries Regime-Dependent Delta Hedging with SVI-Calibrated Volatility Surfaces on SPX Index Options}\par\vspace{0.5em}
 Zaid Annigeri\\
 {\small Master of Quantitative Finance, Rutgers Business School $\cdot$ ma.zaid@rutgers.edu}
 \end{center}
 \vspace{0.8em}
 
-\noindent\textbf{Abstract.} This study evaluates five volatility inputs for delta-hedging S\&P 500 index options: flat at-the-money implied volatility, SVI-calibrated surface implied volatility, and three realized volatility estimators (close-to-close, Parkinson, and Yang-Zhang). Using OptionMetrics data on 2,000 stratified SPX options from January 2019 through December 2024, we conduct daily-rebalanced hedging backtests across four VIX-defined market regimes. Close-to-close realized volatility achieves the best aggregate performance, reducing hedging error standard deviation by 5.8\% versus the flat BSM benchmark ($F = 0.89$, $p = 0.008$). The SVI surface, despite achieving 19.5 basis points median calibration RMSE, increases hedging error by 9.4\% overall ($F = 1.20$, $p < 0.001$). However, the optimal input is moneyness-dependent: SVI dominates for out-of-the-money calls (6--12\% RMSE reduction), while realized volatility dominates for out-of-the-money puts (21--48\% reduction). No single input wins everywhere, motivating a moneyness-conditional hedging strategy.
+\noindent\textbf{Abstract.} This study evaluates five volatility inputs for delta-hedging S\&P 500 index options: flat at-the-money implied volatility, SVI-calibrated surface implied volatility, and three realized volatility estimators (close-to-close, Parkinson, and Yang-Zhang). Using OptionMetrics data on 2,000 stratified SPX options from January 2019 through December 2024, we conduct daily-rebalanced hedging backtests across four VIX-defined market regimes. Among the inputs tested, close-to-close realized volatility achieves the best aggregate performance, reducing hedging error standard deviation by 5.8\% versus the flat BSM benchmark ($F = 0.89$, $p = 0.008$). The SVI surface, despite achieving 19.5 basis points median calibration RMSE, increases hedging error by 9.4\% overall ($F = 1.20$, $p < 0.001$). However, the optimal input is moneyness-dependent: SVI dominates for out-of-the-money calls (6--12\% RMSE reduction), while realized volatility dominates for out-of-the-money puts (21--48\% reduction). An El~Karoui-style P\&L variance decomposition reveals that the volatility input choice explains only 4--20\% of hedging error variance; higher-order residuals (vanna, volga, jumps) account for 153--162\%, dominating all other components. No single input wins everywhere, motivating a moneyness-conditional hedging strategy as a variance-reducing baseline within the BSM framework.
 
 \smallskip\noindent\textbf{Keywords:} delta hedging, implied volatility surface, SVI parameterization, realized volatility, VIX regimes
 
@@ -24,7 +24,7 @@ Zaid Annigeri\\
 
 \textbf{1. Introduction}
 
-Options desks must select a volatility input for computing hedge ratios daily, yet the choice is largely heuristic. The Stochastic Volatility Inspired (SVI) parameterization~[4] is the industry standard for fitting implied volatility surfaces, with typical calibration RMSE of 10--50 basis points for liquid equity index options. Despite extensive validation of SVI calibration quality, no study has tested whether SVI-calibrated volatilities produce better delta-hedging outcomes than simpler alternatives such as flat at-the-money implied volatility or realized volatility estimators. This paper provides the first large-scale empirical comparison of five volatility inputs for delta hedging S\&P 500 index options across four VIX-defined market regimes.
+Options desks must select a volatility input for computing hedge ratios daily, yet the choice is largely heuristic. The Stochastic Volatility Inspired (SVI) parameterization~[4] is the industry standard for fitting implied volatility surfaces, with typical calibration RMSE of 10--50 basis points for liquid equity index options. Despite extensive calibration literature, the empirical question of how much the volatility input choice matters for hedging outcomes---and whether the answer is regime- and moneyness-dependent---remains underexplored. This paper provides a large-scale empirical comparison of five volatility inputs for delta hedging S\&P 500 index options across four VIX-defined market regimes, with emphasis on quantifying the relative importance of vol input selection versus higher-order hedging effects.
 
 \textbf{2. Data \& Methodology}
 
@@ -54,7 +54,7 @@ The optimal input is strongly moneyness-dependent: SVI dominates for OTM calls (
 
 \textbf{4. Conclusions}
 
-A moneyness-conditional strategy---SVI for the OTM call book, close-to-close RV for OTM puts, flat BSM for ATM---would outperform any single-input approach. The dominance of higher-order residuals implies that gamma management is more impactful than volatility input selection. Our findings complement Hull \& White~[5], achieving comparable Gains ($+5.8\%$) through a simpler realized volatility approach rather than minimum-variance delta adjustments.
+No single volatility input dominates, and the choice explains less than 20\% of hedging error variance---the remaining 80--96\% arises from higher-order effects requiring gamma hedging, vanna/volga adjustments, or jump-aware models. A moneyness-conditional strategy---SVI for the OTM call book, close-to-close RV for OTM puts, flat BSM for ATM---could serve as a variance-reducing baseline within the BSM framework. These findings complement Hull \& White~[5], achieving comparable Gains ($+5.8\%$) through a simpler realized volatility approach rather than minimum-variance delta adjustments.
 
 \vspace{0.5em}
 \hrule
